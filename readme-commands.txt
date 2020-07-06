@@ -1,3 +1,7 @@
+##scp 
+sudo scp  -r sunil@192.168.56.20:/etc/docker/certs.d/* .
+
+
 ###On windows
 $docker-machine ls
 
@@ -114,7 +118,7 @@ ADD: It also allow you to copy file from
 	b) extract a tar file from the source directly into the destination.
 EXPOSE:  It documents port on which contianer listen at runtime. It doesnot actually publish the port.
 
-HEALTHCHECK --interval=5s CMD ping -c 172.17.0.2		
+HEALTHCHECK --interval=5s --timeout=2s --retries=3 CMD curl -f http://localhost/ || exit 1
 	other otions --interval, --timeout, --start-point, --retries
 ENTRYPOINT vs CMD	
 		CMD can be over ridden while launching image.
@@ -162,7 +166,12 @@ Use it with --driver overlay while creating network for swarm services.
 	
 $docker network create --driver overlay mydrupal
 $docker service create --name mysql --network mydrupal -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql:5.7
-$docker service create --name drupal --network mydrupal -p 80:80 drupal
+$docker service create --name drupal --network mydrupal -p 80:80 -d \
+    -v modules:/var/www/html/modules \
+    -v profiles:/var/www/html/profiles \
+    -v sites:/var/www/html/sites \
+    -v themes:/var/www/html/themes1 \
+    drupal
 
 mysql -u root -p -h 127.0.0.1
 	
@@ -189,23 +198,23 @@ $docker service create --name mynginx --mount type=volume,source=myvolume, targe
 $docker container exec -it <container id> bash
 
 
-##placemet contstraints
+##placement constraints
 Controls how swarm place containers on nodes
 -Replicated or Global services
 -Resource constraints [ requirement of CPU or Memory]
 -Placement Constraints [ only run on nodes with label pci_compliance =true]
-		$docker node update --label-add region=mumbai <container id>
+		$docker node update --label-add region=mumbai <node id>
 		$docker service create --constraint node.labels.region==mumbai --replicas 3 nginx
 -Placement preferences
 
 	
 ###Stacks	
 Stacks is an orchestration on the top of swarm services.
-Docker stack is ignoring “build” instructions. You can’t build new images using the stack commands. It need pre-built images to exist. So docker-compose is better suited for development scenarios.	
+Docker stack is ignoring “build” instructions. You can’t build new images using the stack commands. It need pre-built images to exist. So docker-compose is better suited for development scenarios, and docker stack are suited for productoin scenarios.
 	
 $docker stack deploy -c docker-compose.yml <stack name>	
-$docker stack services vote-app				# show services
-$docker stack ps vote-app					# show tasks
+$docker stack services <Stack name>				# show services
+$docker stack ps <stack name>  					# show tasks
 
 
 ##Secrets storage
@@ -230,15 +239,17 @@ ls /run/secrets/mysql_password
 $docker service update --env-add name=sunil mysql
 --env-add key=value # add environment variable
 --publish-rm 8080   # remove port
-$docker service scale web=5 # it increases replicas to 5
+$docker service <servicename> scale web=5 # it increases replicas to 5
 
 ##health check
 states: starting, healthy, unhealthy
 
 
 ## run registry
-docker container run -d -p 5000:5000 --name registry registry
+docker container run -d -p 5000:5000 --name registry --constraints node.labels.registry=true registry
 docker container run -d -p 5000:5000 --name registry -v /d/temp/registry-data:/var/lib/registry registry
+
+
 
 
 ######Docker Enterprise Edition

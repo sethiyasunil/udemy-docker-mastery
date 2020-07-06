@@ -1,0 +1,17 @@
+version: "3.1"
+
+services:
+    registry:
+        image: registry
+        stop_grace_period: 1m30s
+        volumes:
+            - /home/sunil/share/:/var/lib/registry        
+        ports:
+            - "5000:5000"
+    environment:
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt
+      - REGISTRY_HTTP_TLS_KEY=/certs/domain.key      
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.registry == true

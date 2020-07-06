@@ -2,12 +2,13 @@ version: "3"
 
 services:
     viz:
-        image: bretfisher/visualizer
+        image: dockersamples/visualizer
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+        stop_grace_period: 1m30s
         ports:
-            - "8080:8080"
+            - "9000:8080"
         deploy:
             placement:
                 constraints:
-                    - node.role == manager
+                    - node.labels.visualizer == true
